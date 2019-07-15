@@ -169,7 +169,11 @@ def train(epoch, device, model, optimizer, train_loader, kld_weight):
             'value': total_bce_loss
         }))
 
-    return total_loss / len(train_loader)
+    return {
+        'loss': total_loss / len(train_loader),
+        'bce': total_bce_loss / len(train_loader),
+        'kld': total_kld_loss / len(train_loader)
+    }
 
 
 def test(epoch, device, model, test_loader, kld_weight):
@@ -222,7 +226,11 @@ def test(epoch, device, model, test_loader, kld_weight):
             'value': total_bce_loss
         }))
 
-    return total_loss / len(test_loader)
+    return {
+        'loss': total_loss / len(test_loader),
+        'bce': total_bce_loss / len(test_loader),
+        'kld': total_kld_loss / len(test_loader)
+    }
 
 
 def load_state(path, model, optimizer):
@@ -254,7 +262,7 @@ def main():
     parser.add_argument('data')
     parser.add_argument('--small', type=bool, default=False)
     parser.add_argument('--model_path', type=str, default='model')
-    parser.add_argument('--kld_weight', type=float, default=5.0)
+    parser.add_argument('--kld-weight', type=float, default=5.0)
     parser.add_argument('--latent-size', type=int, default=10)
     parser.add_argument('--batch-size', type=int, default=128)
     parser.add_argument('--learning-rate', type=float, default=1e-3)
@@ -270,11 +278,9 @@ def main():
     model_path = args.model_path
     data_path = args.data
 
-
-
     device = torch.device("cuda")
 
-    model = VAE(latent_size=10).to(device)
+    model = VAE(latent_size=args.latent_size).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -302,6 +308,9 @@ def main():
 
         metrics['test'].append(
             test(epoch, device, model, test_data_loader, args.kld_weight))
+
+    with open('metrics.json', 'w') as f:
+        json.dump(metrics, f)
 
 
 if __name__ == '__main__':
