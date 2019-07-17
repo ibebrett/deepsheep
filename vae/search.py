@@ -10,7 +10,7 @@ space = {
     'batch-size': hp.quniform('batch-size', 4, 6, 1),
     'learning-rate': hp.loguniform('learning-rate', np.log(1e-4),
                                    np.log(0.001)),
-    'model': hp.choice('model', ['simple', 'conv'])
+    'model': hp.choice('model', ['deep'])
 }
 
 for _ in range(10):
@@ -18,9 +18,10 @@ for _ in range(10):
 
     sample['latent-size'] = int(sample['latent-size'])
     sample['batch-size'] = int(np.power(2, sample['batch-size']))
-    sample['epochs'] = 10
+    sample['epochs'] = 50
 
     arg_command = ' '.join(
         [f'--{key}={value}' for key, value in sample.items()])
     command = f'floyd run --gpu --data ibebrett/datasets/deepsheep/1:/deepsheep --env=pytorch-1.0 "python main.py /deepsheep {arg_command}"'
-    subprocess.call(command, shell=True)
+    print(command)
+    #subprocess.call(command, shell=True)
